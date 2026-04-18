@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:skia="clr-namespace:SkiaSharp.Extended.UI.Controls;assembly=SkiaSharp.Extended.UI"
+             x:Class="SlidingNumbersPlus.Views.GamePage"
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#1A1A2E">
+
+    <Grid IgnoreSafeArea="True">
+        <!-- Allows background to go behind notch/nav bar -->
+
+        <!-- Background Image: Truly Edge-to-Edge -->
+        <Image x:Name="imgBg" Aspect="AspectFill" Opacity="0.18" />
+
+        <!-- Main Content Area: Using Padding to avoid the status bar -->
+        <Grid RowDefinitions="Auto,*,Auto" Padding="{OnPlatform Android='0,40,0,0', Default='0'}">
+
+            <!-- HUD -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" Padding="12,10,12,8">
+                <Button Grid.Column="0" Text="←" FontSize="24" TextColor="White"
+                        BackgroundColor="Transparent" Clicked="OnBackClicked" Padding="4,0"/>
+
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center">
+                    <Label x:Name="lblLevel" FontSize="16" FontAttributes="Bold" TextColor="#E94560"/>
+                    <Label x:Name="lblCity" FontSize="11" TextColor="#AAAACC"/>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Column="2" Margin="0,0,14,0" VerticalOptions="Center">
+                    <Label Text="MOVES" FontSize="9" TextColor="#777799" HorizontalTextAlignment="Center"/>
+                    <Label x:Name="lblMoves" FontSize="26" FontAttributes="Bold" TextColor="White"/>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Grid.Column="3" VerticalOptions="Center">
+                    <Label Text="⭐" FontSize="10" HorizontalTextAlignment="Center"/>
+                    <Label x:Name="lblStars" FontSize="20" FontAttributes="Bold" TextColor="#FFD700"/>
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Puzzle Area -->
+            <Grid x:Name="puzzleGrid" Grid.Row="1" Margin="16"
+                  VerticalOptions="Center" HorizontalOptions="Center"/>
+
+            <!-- Status Overlays (Win/Fail/Loading) -->
+            <!-- Note: These cover the whole screen because they are inside the IgnoreSafeArea Grid -->
+
+            <Grid x:Name="loadingOverlay" Grid.RowSpan="3" BackgroundColor="#D01A1A2E" 
+                  IsVisible="{Binding IsLoading}">
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="16">
+                    <ActivityIndicator IsRunning="True" Color="#E94560" WidthRequest="52" HeightRequest="52"/>
+                    <Label Text="Shuffling puzzle..." TextColor="White" FontSize="16"/>
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Win Overlay -->
+            <Grid x:Name="winOverlay" Grid.RowSpan="3" BackgroundColor="#CC1A1A2E" IsVisible="False">
+                <Border BackgroundColor="#16213E" StrokeShape="RoundRectangle 24" Padding="28" VerticalOptions="Center" Margin="30">
+                    <VerticalStackLayout Spacing="14" HorizontalOptions="Center">
+                        <Label Text="🎉" FontSize="72" HorizontalTextAlignment="Center"/>
+                        <Label Text="PUZZLE SOLVED!" FontSize="26" FontAttributes="Bold" TextColor="White"/>
+                        <Label x:Name="lblStarsEarned" FontSize="32" HorizontalTextAlignment="Center"/>
+                        <Button Text="NEXT LEVEL →" BackgroundColor="#E94560" CornerRadius="22" Clicked="OnNextLevelClicked" Padding="20,10"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- Fail Overlay -->
+            <Grid x:Name="failOverlay" Grid.RowSpan="3" BackgroundColor="#CC1A1A2E" IsVisible="False">
+                <Border BackgroundColor="#16213E" StrokeShape="RoundRectangle 24" Padding="28" VerticalOptions="Center" Margin="30">
+                    <VerticalStackLayout Spacing="14">
+                        <Label Text="💀" FontSize="72" HorizontalTextAlignment="Center"/>
+                        <Label Text="OUT OF MOVES" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center"/>
+                        <Button x:Name="btnBuyMoves" Text="Spend 5 Stars (+20 Moves)" BackgroundColor="Green" Clicked="OnBuyMovesClicked"/>
+                        <Button Text="RETRY" BackgroundColor="#E94560" Clicked="OnRetryClicked"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!--<skia:SKLottieView x:Name="victoryAnim"
+                       Source="victory.json"
+                       RepeatCount="0" 
+                       IsAnimationEnabled="False"
+                       HeightRequest="150" WidthRequest="150"
+                       HorizontalOptions="Center" />-->
+        </Grid>
+    </Grid>
+</ContentPage>
