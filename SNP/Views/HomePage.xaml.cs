@@ -18,22 +18,43 @@ namespace SlidingNumbersPlus.Views
 
         private async void OnPlayClicked(object sender, EventArgs e)
         {
-            await Bounce(sender as Button);
             var s = GameState.Load();
             bool newGame = s.MovesLeft < 0 || s.Sequence.Count == 0;
-            await Navigation.PushAsync(new GamePage(s, newGame));
+
+            GamePage page;
+            try
+            {
+                page = new GamePage(s, newGame);
+                System.Diagnostics.Debug.WriteLine("GamePage constructed OK");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GamePage ctor FAILED: {ex}");
+                return;
+            }
+
+            try
+            {
+                var navPage = Application.Current!.MainPage as NavigationPage;
+                await navPage!.PushAsync(page);
+                System.Diagnostics.Debug.WriteLine("Push OK");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"PushAsync FAILED: {ex}");
+            }
         }
 
         private async void OnLevelsClicked(object sender, EventArgs e)
         {
-            await Bounce(sender as Button);
-            await Navigation.PushAsync(new LevelsPage());
+            var navPage = Application.Current!.MainPage as NavigationPage;
+            await navPage!.PushAsync(new LevelsPage());
         }
 
         private async void OnSettingsClicked(object sender, EventArgs e)
         {
-            await Bounce(sender as Button);
-            await Navigation.PushAsync(new SettingsPage());
+            var navPage = Application.Current!.MainPage as NavigationPage;
+            await navPage!.PushAsync(new SettingsPage());
         }
 
         private static async Task Bounce(Button? b)

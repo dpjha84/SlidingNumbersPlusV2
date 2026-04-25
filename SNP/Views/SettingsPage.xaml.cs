@@ -12,8 +12,9 @@ namespace SlidingNumbersPlus.Views
             base.OnAppearing();
             _ready = false;
             var s = GameState.Load();
-            switchSound.IsToggled = s.SoundOn;
-            switchMusic.IsToggled = s.MusicOn;
+            lblVersion.Text = AppInfo.Current.VersionString;
+            //switchSound.IsToggled = s.SoundOn;
+            //switchMusic.IsToggled = s.MusicOn;
             _ready = true;
         }
 

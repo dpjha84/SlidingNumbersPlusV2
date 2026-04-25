@@ -43,12 +43,15 @@ namespace SlidingNumbersPlus.ViewModels
 
             if (newGame) ShuffleThenStart(state);
             else Ready();
+            SentryHelper.Send(() => SentrySdk.CaptureMessage($"Starting level: {state.Level}, grid size: {state.GridSize}"));
         }
 
         private async void ShuffleThenStart(GameState state)
         {
             int moves = state.GridSize * (int)Math.Pow(2, state.Increment) * 20;
+            System.Diagnostics.Debug.WriteLine($"Shuffling {moves} moves. GridSize={state.GridSize} Increment={state.Increment}");
             await Task.Run(() => _engine.Shuffle(moves));
+            //await Task.Run(() => _engine.Shuffle(1));
             MovesLeft = state.MaxMoves;
             IsLoading = false;
             Ready();
@@ -64,7 +67,7 @@ namespace SlidingNumbersPlus.ViewModels
 
         public void Tap(int row, int col)
         {
-            if (IsLoading) return;
+            if (IsLoading || MovesLeft <= 0 || _engine.IsSolved()) return;
             var changed = _engine.TryMove(row, col);
             if (changed.Count == 0) return;
 
@@ -92,6 +95,7 @@ namespace SlidingNumbersPlus.ViewModels
                 s.Save();
                 StarCount = s.StarCount;
                 WinTriggered?.Invoke(StarsEarned);
+                SentryHelper.Send(() => SentrySdk.CaptureMessage($"Won level: {s.Level}, moves left: {s.MovesLeft}"));
                 return;
             }
             if (MovesLeft <= 0)
@@ -99,6 +103,7 @@ namespace SlidingNumbersPlus.ViewModels
                 StopTimer();
                 var s = GameState.Load();
                 s.MovesLeft = -1; s.Sequence = new List<string>(); s.Save();
+                SentryHelper.Send(() => SentrySdk.CaptureMessage($"Failed level: {s.Level}"));
                 FailTriggered?.Invoke();
             }
         }

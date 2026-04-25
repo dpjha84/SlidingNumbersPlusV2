@@ -27,10 +27,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
 	<PackageReference Include="SkiaSharp.Views.Maui.Controls" Version="3.119.1" />
 	<PackageReference Include="SkiaSharp.Extended.UI.Maui" Version="3.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <MauiImage Update="Resources\Images\london.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </MauiImage>
+	<PackageReference Include="Sentry.Maui" Version="5.0.1" />
   </ItemGroup>
 </Project>

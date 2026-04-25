@@ -14,7 +14,7 @@
     <ScrollView Grid.Row="1">
       <VerticalStackLayout Padding="20" Spacing="14">
 
-        <Border BackgroundColor="#16213E" StrokeShape="RoundRectangle 16"
+        <!--<Border BackgroundColor="#16213E" StrokeShape="RoundRectangle 16"
                 StrokeThickness="0" Padding="20,14">
           <Grid ColumnDefinitions="*,Auto">
             <VerticalStackLayout Grid.Column="0" Spacing="3">
@@ -36,7 +36,7 @@
             <Switch x:Name="switchMusic" Grid.Column="1" OnColor="#E94560"
                     ThumbColor="White" VerticalOptions="Center" Toggled="OnMusicToggled"/>
           </Grid>
-        </Border>
+        </Border>-->
 
         <Border BackgroundColor="#16213E" StrokeShape="RoundRectangle 16"
                 StrokeThickness="0" Padding="20,16">
@@ -81,10 +81,10 @@
         <Border BackgroundColor="#16213E" StrokeShape="RoundRectangle 16"
                 StrokeThickness="0" Padding="20,16">
           <VerticalStackLayout Spacing="4">
-            <Label Text="Sliding Numbers +" FontSize="16" FontAttributes="Bold" TextColor="White"/>
-            <Label Text="v1.0  &#x2022;  .NET 10 MAUI" FontSize="12" TextColor="#AAAACC"/>
+            <Label Text="Sliding Numbers Plus" FontSize="16" FontAttributes="Bold" TextColor="White"/>
+            <Label x:Name="lblVersion" FontSize="12" TextColor="#AAAACC"/>
             <Label Text="Classic sliding puzzle with city themes and star rewards."
-                   FontSize="12" TextColor="#555577" Margin="0,4,0,0"/>
+                   FontSize="14" TextColor="#555577" Margin="0,4,0,0"/>
           </VerticalStackLayout>
         </Border>
 

@@ -1,9 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-  <rect width="128" height="128" fill="#1A1A2E"/>
-  <rect x="14" y="14" width="44" height="44" rx="8" fill="#E94560"/>
-  <rect x="70" y="14" width="44" height="44" rx="8" fill="#0F3460"/>
-  <rect x="14" y="70" width="44" height="44" rx="8" fill="#0F3460"/>
-  <text x="36" y="44" font-size="28" text-anchor="middle" fill="white" font-weight="bold">1</text>
-  <text x="92" y="44" font-size="28" text-anchor="middle" fill="white" font-weight="bold">2</text>
-  <text x="36" y="100" font-size="28" text-anchor="middle" fill="white" font-weight="bold">3</text>
+  <!-- Background color handled by Color="#1A1A2E" in csproj -->
+  <!-- Artwork centered, scaled to ~60% of canvas for safe splash display -->
+
+  <!-- Tile 1 (top-left) -->
+  <rect x="22" y="22" width="36" height="36" rx="5" fill="#E94560"/>
+  <text x="40" y="47" font-size="22" text-anchor="middle"
+        fill="white" font-weight="bold" font-family="sans-serif">1</text>
+
+  <!-- Tile 2 (top-right) -->
+  <rect x="70" y="22" width="36" height="36" rx="5" fill="#0F3460"/>
+  <text x="88" y="47" font-size="22" text-anchor="middle"
+        fill="white" font-weight="bold" font-family="sans-serif">2</text>
+
+  <!-- Tile 3 (bottom-left) -->
+  <rect x="22" y="70" width="36" height="36" rx="5" fill="#0F3460"/>
+  <text x="40" y="95" font-size="22" text-anchor="middle"
+        fill="white" font-weight="bold" font-family="sans-serif">3</text>
+
+  <!-- Empty tile (bottom-right) -->
+  <rect x="70" y="70" width="36" height="36" rx="5"
+        fill="none" stroke="#E94560" stroke-width="2" opacity="0.5"/>
 </svg>
