@@ -115,10 +115,6 @@ namespace SlidingNumbersPlus.Views
                     };
                     border.GestureRecognizers.Add(tap);
 
-                    var pan = new PanGestureRecognizer();
-                    pan.PanUpdated += (s, e) => OnTilePan(s, e, row, col);
-                    border.GestureRecognizers.Add(pan);
-
                     // 2. CRITICAL FIX: Store the references so RenderTile can find them later
                     _cells[r, c] = border;
                     _labels[r, c] = lbl;
