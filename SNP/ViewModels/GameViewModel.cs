@@ -49,9 +49,7 @@ namespace SlidingNumbersPlus.ViewModels
         private async void ShuffleThenStart(GameState state)
         {
             int moves = state.GridSize * (int)Math.Pow(2, state.Increment) * 20;
-            System.Diagnostics.Debug.WriteLine($"Shuffling {moves} moves. GridSize={state.GridSize} Increment={state.Increment}");
             await Task.Run(() => _engine.Shuffle(moves));
-            //await Task.Run(() => _engine.Shuffle(1));
             MovesLeft = state.MaxMoves;
             IsLoading = false;
             Ready();
@@ -155,5 +153,10 @@ namespace SlidingNumbersPlus.ViewModels
         }
 
         public List<Tile> AllTiles() => _engine.AllTiles();
+
+        internal (List<Tile> chain, int dr, int dc) GetMoveChain(int row, int col)
+        {
+            return _engine.GetMoveChain(row, col);
+        }
     }
 }

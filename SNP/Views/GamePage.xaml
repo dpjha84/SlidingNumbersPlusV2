@@ -43,12 +43,7 @@
             <!-- Status Overlays (Win/Fail/Loading) -->
             <!-- Note: These cover the whole screen because they are inside the IgnoreSafeArea Grid -->
 
-            <Grid x:Name="loadingOverlay" Grid.RowSpan="3" BackgroundColor="#D01A1A2E" IsVisible="True">
-                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="16">
-                    <ActivityIndicator IsRunning="True" Color="#E94560" WidthRequest="52" HeightRequest="52"/>
-                    <Label Text="Shuffling puzzle..." TextColor="White" FontSize="16"/>
-                </VerticalStackLayout>
-            </Grid>
+            
 
             <!-- Win Overlay -->
             <!--<Grid x:Name="winOverlay" Grid.RowSpan="3" BackgroundColor="#CC1A1A2E" IsVisible="False">
@@ -106,46 +101,42 @@ IsVisible="False"
                HorizontalOptions="Center"
                WidthRequest="280"
                HeightRequest="400">
-                <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*">
-                    <!--<skia:SKLottieView Source="trophy.json"
-x:Name="trophyAnimation"
-RepeatCount="1"
-VerticalOptions="Fill"
-HorizontalOptions="Fill" />-->
-
+                <Grid ColumnDefinitions="*,*,*" RowDefinitions="*,*,*,*">
+                    <Label Text="WELL DONE!" FontSize="24" Grid.ColumnSpan="3" FontAttributes="Bold" TextColor="White" HorizontalTextAlignment="Center" VerticalOptions="Center"/>
+                    <skia:SKLottieView Source="trophy.json" Grid.Row="1" Grid.ColumnSpan="3"
+                        x:Name="trophyAnimation"
+                        RepeatCount="2"
+                        VerticalOptions="Fill"
+                        HorizontalOptions="Fill" />
                     <skia:SKLottieView
                         IsVisible="False"
-                                    Grid.Row="1"
+                                    Grid.Row="2"
                                       Source="stars.json"
                                       x:Name="starsAnimation1"
                                       RepeatCount="2"
                                       VerticalOptions="Start"
                                       HorizontalOptions="Start"
                                       Grid.Column="0"/>
-                    <skia:SKLottieView Source="stars.json" Grid.Row="1"
+                    <skia:SKLottieView Source="stars.json" Grid.Row="2"
                                        IsVisible="False"
                                       x:Name="starsAnimation2"
                                       RepeatCount="2"
                                       VerticalOptions="Start"
                                       HorizontalOptions="Start"
                                       Grid.Column="1"/>
-                    <skia:SKLottieView Source="stars.json" Grid.Row="1"
+                    <skia:SKLottieView Source="stars.json" Grid.Row="2"
                                        IsVisible="False"
                                       x:Name="starsAnimation3"
                                       RepeatCount="2"
                                       VerticalOptions="Start"
                                       HorizontalOptions="Start"
                                       Grid.Column="2"/>
-                    <skia:SKLottieView Source="trophy.json" Grid.ColumnSpan="3"
-                  x:Name="trophyAnimation"
-                  RepeatCount="2"
-                  VerticalOptions="Fill"
-                  HorizontalOptions="Fill" />
-                    <skia:SKLottieView Source="confetti.json" Grid.RowSpan="3" Grid.ColumnSpan="3"
+                    
+                    <skia:SKLottieView Source="confetti.json" Grid.RowSpan="4" Grid.ColumnSpan="3"
           x:Name="confettiAnimation"
           RepeatCount="-1"/>
 
-                    <Button Text="NEXT LEVEL →" Grid.Row="2" Grid.ColumnSpan="3" BackgroundColor="Green" CornerRadius="22" Clicked="OnNextLevelClicked" HeightRequest="50" Margin="50"/>
+                    <Button Text="NEXT LEVEL →" Grid.Row="3" Grid.ColumnSpan="3" BackgroundColor="Green" CornerRadius="22" Clicked="OnNextLevelClicked" HeightRequest="50" Margin="50"/>
                 </Grid>
 
             </Border>
@@ -175,6 +166,13 @@ HorizontalOptions="Center" />
                 </Grid>
 
             </Border>
+
+            <Grid x:Name="loadingOverlay" Grid.RowSpan="3" BackgroundColor="#D01A1A2E" IsVisible="False">
+                <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="16">
+                    <ActivityIndicator IsRunning="True" Color="#E94560" WidthRequest="52" HeightRequest="52"/>
+                    <Label Text="Shuffling puzzle..." TextColor="White" FontSize="16"/>
+                </VerticalStackLayout>
+            </Grid>
         </Grid>
     </Grid>
 </ContentPage>

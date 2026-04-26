@@ -1,7 +1,6 @@
 using Microsoft.Maui.Controls.Shapes;
 using SkiaSharp.Extended.UI.Controls;
 using SlidingNumbersPlus.Models;
-using SlidingNumbersPlus.Services;
 using SlidingNumbersPlus.ViewModels;
 
 namespace SlidingNumbersPlus.Views
@@ -14,6 +13,10 @@ namespace SlidingNumbersPlus.Views
         private Border[,]  _cells   = new Border[0, 0];
         private Label[,]   _labels  = new Label[0, 0];
         private bool       _built   = false;
+        private List<Tile> _panChain = new();
+        private int _panDr, _panDc;
+        private double _cellSize;
+        private bool _panning = false;
 
         public GamePage(GameState state, bool newGame)
         {
@@ -76,6 +79,7 @@ namespace SlidingNumbersPlus.Views
             double gridMargin = 40;
             double availableWidth = screenWidth - gridMargin;
             double cell = Math.Floor(availableWidth / size);
+            _cellSize = cell;
 
             for (int i = 0; i < size; i++)
             {
@@ -94,6 +98,7 @@ namespace SlidingNumbersPlus.Views
                         HorizontalTextAlignment = TextAlignment.Center,
                         VerticalTextAlignment = TextAlignment.Center,
                         TextColor = Colors.White,
+                        InputTransparent = true
                     };
 
                     var border = new Border
@@ -104,29 +109,164 @@ namespace SlidingNumbersPlus.Views
                         Content = lbl,
                         BackgroundColor = Color.FromArgb("#2A2A4E")
                     };
+                    var container = new ContentView
+                    {
+                        Content = border,
+                        Padding = 0,
+                        BackgroundColor = Colors.Transparent
+                    };
 
                     int row = r, col = c;
 
+                    //var tap = new TapGestureRecognizer();
+                    //tap.Tapped += (_, _) =>
+                    //{
+                    //    _vm.Tap(row, col);
+                    //    UpdateHud();
+                    //};
+                    //border.GestureRecognizers.Add(tap);
+
+                    var pan = new PanGestureRecognizer();
+                    pan.PanUpdated += (s, e) => OnTilePan(s, e, row, col);
+                    container.GestureRecognizers.Add(pan);
+
                     var tap = new TapGestureRecognizer();
-                    tap.Tapped += (_, _) =>
+                    tap.Tapped += async (_, _) =>
                     {
+                        if (_panning) return; // Don't tap if we are currently sliding
+
+                        // Add a little feedback animation
+                        await border.ScaleToAsync(0.95, 50);
+                        await border.ScaleToAsync(1.0, 50);
+
                         _vm.Tap(row, col);
                         UpdateHud();
                     };
-                    border.GestureRecognizers.Add(tap);
+                    container.GestureRecognizers.Add(tap);
 
                     // 2. CRITICAL FIX: Store the references so RenderTile can find them later
                     _cells[r, c] = border;
                     _labels[r, c] = lbl;
 
                     // 3. Add to Grid with proper positioning
-                    puzzleGrid.Children.Add(border);
+                    puzzleGrid.Add(container, c, r);
                     Grid.SetRow(border, r);
                     Grid.SetColumn(border, c);
                 }
             }
 
             _built = true;
+        }
+
+        private void OnTilePan(object? sender, PanUpdatedEventArgs e, int row, int col)
+        {
+            switch (e.StatusType)
+            {
+                case GestureStatus.Started:
+                    StartPan(row, col);
+                    break;
+
+                case GestureStatus.Running:
+                    UpdatePan(e.TotalX, e.TotalY);
+                    break;
+
+                case GestureStatus.Completed:
+                case GestureStatus.Canceled:
+                    CommitPan(e.TotalX, e.TotalY);
+                    break;
+            }
+        }
+
+        private void StartPan(int row, int col)
+        {
+            var (chain, dr, dc) = _vm.GetMoveChain(row, col);
+            if (chain.Count == 0) return;
+
+            _panChain = chain;
+            _panDr = dr;
+            _panDc = dc;
+            _panning = true;
+
+            // Bring panning tiles to front visually
+            foreach (var t in _panChain)
+                _cells[t.Row, t.Col].ZIndex = 10;
+        }
+
+        private void UpdatePan(double totalX, double totalY)
+        {
+            if (!_panning || _panChain.Count == 0) return;
+
+            // Use the stored direction from StartPan
+            bool isHorizontal = _panDc != 0;
+            double input = isHorizontal ? totalX : totalY;
+            int direction = isHorizontal ? _panDc : _panDr;
+
+            // CLAMPING: 
+            // If moving Right/Down (direction 1): Clamp 0 to CellSize
+            // If moving Left/Up (direction -1): Clamp -CellSize to 0
+            double translation = direction > 0
+                ? Math.Clamp(input, 0, _cellSize)
+                : Math.Clamp(input, -_cellSize, 0);
+
+            foreach (var t in _panChain)
+            {
+                var cell = _cells[t.Row, t.Col];
+                if (isHorizontal)
+                    cell.TranslationX = translation;
+                else
+                    cell.TranslationY = translation;
+            }
+        }
+
+        private async void CommitPan(double totalX, double totalY)
+        {
+            if (!_panning || _panChain.Count == 0) return;
+            _panning = false;
+
+            // 1. Reference the first tile in the chain to see how far it actually moved
+            var firstTile = _panChain[0];
+            var cellView = _cells[firstTile.Row, firstTile.Col];
+
+            // 2. Calculate actual distance moved based on its translation
+            // We use Math.Abs because we want the distance regardless of +/- direction
+            double actualDist = _panDc != 0
+                ? Math.Abs(cellView.TranslationX)
+                : Math.Abs(cellView.TranslationY);
+
+            // 3. Set a more forgiving threshold (e.g., 40% of the cell size)
+            double threshold = _cellSize * 0.4;
+
+            // Reset z-index immediately
+            foreach (var t in _panChain)
+                _cells[t.Row, t.Col].ZIndex = 0;
+
+            if (actualDist >= threshold)
+            {
+                // COMMIT MOVE
+                // Briefly snap the translation to the target to avoid "jumping"
+                if (_panDc != 0) cellView.TranslationX = _panDc * _cellSize;
+                else cellView.TranslationY = _panDr * _cellSize;
+
+                // Execute logic
+                _vm.Tap(firstTile.Row, firstTile.Col);
+                UpdateHud();
+
+                // Reset translations (Engine has swapped the labels, so visually they reset)
+                foreach (var t in _panChain)
+                {
+                    _cells[t.Row, t.Col].TranslationX = 0;
+                    _cells[t.Row, t.Col].TranslationY = 0;
+                }
+            }
+            else
+            {
+                // SNAP BACK (Spring back to source)
+                var snapTasks = _panChain.Select(t =>
+                    _cells[t.Row, t.Col].TranslateToAsync(0, 0, 150, Easing.CubicOut));
+                await Task.WhenAll(snapTasks);
+            }
+
+            _panChain.Clear();
         }
 
         private void OnGameReady()
@@ -184,7 +324,7 @@ namespace SlidingNumbersPlus.Views
             {
                 border.BackgroundColor = t.IsCorrect ? Colors.Green : Colors.Red;
                 border.Stroke = Colors.White;
-                border.StrokeThickness = t.IsCorrect ? 2 : 1;
+                border.StrokeThickness = 2;
                 lbl.Text = t.Label;
                 lbl.TextColor = Colors.White;
             }
@@ -226,6 +366,9 @@ namespace SlidingNumbersPlus.Views
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
+                loadingOverlay.IsVisible = true;
+                await Task.Delay(200);
+                loadingOverlay.IsVisible = false;
                 victoryAnim.IsVisible = true;
 
                 PlayAnimation(trophyAnimation);
@@ -268,6 +411,9 @@ namespace SlidingNumbersPlus.Views
         {
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
+                loadingOverlay.IsVisible = true;
+                await Task.Delay(200);
+                loadingOverlay.IsVisible = false;
                 failureAnim.IsVisible = true;
                 failureLottieAnim.IsVisible = true;
                 failureLottieAnim.IsAnimationEnabled = true;
@@ -283,7 +429,10 @@ namespace SlidingNumbersPlus.Views
 
         private async void OnNextLevelClicked(object sender, EventArgs e)
         {
+            loadingOverlay.IsVisible = true;
+            await Task.Delay(1000);            
             var s = GameState.Load();
+            loadingOverlay.IsVisible = false;
             await Navigation.PushAsync(new GamePage(s, newGame: true));
         }
 

@@ -1,22 +1,15 @@
+using SlidingNumbersPlus.Models;
+
 namespace SlidingNumbersPlus.Services
 {
-    public class Tile
-    {
-        public int    AbsPos  { get; set; }
-        public int    Row     { get; set; }
-        public int    Col     { get; set; }
-        public string Label   { get; set; } = string.Empty;
-        public bool   IsEmpty   => string.IsNullOrEmpty(Label);
-        public bool   IsCorrect => !IsEmpty && Label == AbsPos.ToString();
-    }
 
     public class PuzzleEngine
     {
         private readonly Random _rng = new();
         private Tile[,] _grid = new Tile[0, 0];
-        private Tile    _empty = new();
-        private int     _size;
-        public  int     Size => _size;
+        private Tile _empty = new();
+        private int _size;
+        public int Size => _size;
 
         public void Init(int size, List<string> seq)
         {
@@ -26,8 +19,13 @@ namespace SlidingNumbersPlus.Services
             for (int r = 0; r < size; r++)
                 for (int c = 0; c < size; c++)
                 {
-                    var t = new Tile { AbsPos = k + 1, Row = r, Col = c,
-                                       Label  = k < seq.Count ? seq[k] : string.Empty };
+                    var t = new Tile
+                    {
+                        AbsPos = k + 1,
+                        Row = r,
+                        Col = c,
+                        Label = k < seq.Count ? seq[k] : string.Empty
+                    };
                     _grid[r, c] = t;
                     if (t.IsEmpty) _empty = t;
                     k++;
@@ -45,7 +43,7 @@ namespace SlidingNumbersPlus.Services
 
         public List<string> Sequence() => AllTiles().Select(t => t.Label).ToList();
 
-        // Returns changed tiles, or empty list if move invalid
+        /// Returns changed tiles, or empty list if move invalid.
         public List<Tile> TryMove(int row, int col)
         {
             var changed = new List<Tile>();
@@ -80,6 +78,31 @@ namespace SlidingNumbersPlus.Services
             return changed;
         }
 
+        /// Returns the chain of tiles that would move and the direction,
+        /// without actually applying the move. Used for pan gesture preview.
+        public (List<Tile> chain, int dr, int dc) GetMoveChain(int row, int col)
+        {
+            var chain = new List<Tile>();
+            var t = _grid[row, col];
+            if (t.IsEmpty) return (chain, 0, 0);
+
+            int dr = 0, dc = 0;
+            if (_empty.Row == row && _empty.Col != col)
+                dc = _empty.Col > col ? 1 : -1;
+            else if (_empty.Col == col && _empty.Row != row)
+                dr = _empty.Row > row ? 1 : -1;
+            else
+                return (chain, 0, 0);
+
+            int r = row, c = col;
+            while (r != _empty.Row || c != _empty.Col)
+            {
+                chain.Add(_grid[r, c]);
+                r += dr; c += dc;
+            }
+            return (chain, dr, dc);
+        }
+
         public bool IsSolved()
         {
             for (int r = 0; r < _size; r++)
@@ -108,10 +131,10 @@ namespace SlidingNumbersPlus.Services
         private List<Tile> GetNeighbours(Tile t)
         {
             var list = new List<Tile>();
-            if (t.Row > 0)        list.Add(_grid[t.Row - 1, t.Col]);
-            if (t.Row < _size-1)  list.Add(_grid[t.Row + 1, t.Col]);
-            if (t.Col > 0)        list.Add(_grid[t.Row, t.Col - 1]);
-            if (t.Col < _size-1)  list.Add(_grid[t.Row, t.Col + 1]);
+            if (t.Row > 0) list.Add(_grid[t.Row - 1, t.Col]);
+            if (t.Row < _size - 1) list.Add(_grid[t.Row + 1, t.Col]);
+            if (t.Col > 0) list.Add(_grid[t.Row, t.Col - 1]);
+            if (t.Col < _size - 1) list.Add(_grid[t.Row, t.Col + 1]);
             return list;
         }
     }
