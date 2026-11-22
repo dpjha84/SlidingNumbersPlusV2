@@ -1,0 +1,10 @@
+<resources>
+    <!-- Replace these empty values with IDs created for the linked Play Games Services project. -->
+    <string name="gpgs_leaderboard_best_solve_score"></string>
+    <string name="gpgs_achievement_first_win"></string>
+    <string name="gpgs_achievement_three_stars"></string>
+    <string name="gpgs_achievement_london_master"></string>
+    <string name="gpgs_achievement_paris_master"></string>
+    <string name="gpgs_achievement_new_york_master"></string>
+    <string name="gpgs_achievement_25_levels"></string>
+</resources>
