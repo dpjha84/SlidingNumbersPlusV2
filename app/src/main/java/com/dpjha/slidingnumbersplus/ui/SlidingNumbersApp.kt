@@ -43,6 +43,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -150,7 +151,7 @@ fun SlidingNumbersApp(activity: Activity) {
         } else {
             PuzzleEngine(size).apply {
                 val increment = GameProgress.incrementForLevel(level)
-                shuffle(size * (1 shl increment) * 20)
+                shuffle(minimumDisplacedTiles = 3 + increment * 2)
             }
         }
         val moveLimit = GameProgress.moveLimitForLevel(level)
@@ -353,14 +354,9 @@ private fun LoadFailure(onRetry: () -> Unit) {
 
 @Composable
 private fun CityBackdrop(city: City) {
-    val image = when (city) {
-        City.LONDON -> R.drawable.london
-        City.PARIS -> R.drawable.paris
-        City.NEW_YORK -> R.drawable.newyork
-    }
     Box(Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(image),
+            painter = painterResource(cityImage(city)),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
@@ -368,13 +364,25 @@ private fun CityBackdrop(city: City) {
         Box(
             Modifier.fillMaxSize().background(
                 Brush.verticalGradient(
-                    0f to Color(0xDD111426),
-                    0.48f to Color(0xE8111426),
-                    1f to Color(0xF5111426),
+                    0f to Color(0xAA111426),
+                    0.45f to Color(0xD4111426),
+                    1f to Color(0xF2111426),
                 ),
             ),
         )
     }
+}
+
+private fun cityImage(city: City): Int = when (city) {
+    City.LONDON -> R.drawable.london
+    City.PARIS -> R.drawable.paris
+    City.NEW_YORK -> R.drawable.newyork
+}
+
+private fun cityAccent(city: City): Color = when (city) {
+    City.LONDON -> Color(0xFFFF7185)
+    City.PARIS -> Color(0xFFFFC857)
+    City.NEW_YORK -> Color(0xFF8C7BFF)
 }
 
 @Composable
@@ -390,99 +398,175 @@ private fun HomeScreen(
     onAchievements: () -> Unit,
 ) {
     Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
-            Spacer(Modifier.width(6.dp))
-            Text("${progress.starCount}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.secondary)
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = Color(0xCC202944),
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
+                    Spacer(Modifier.width(8.dp))
+                    Text("${progress.starCount} stars", fontWeight = FontWeight.Bold)
+                }
+            }
+            IconButton(onClick = onSettings) {
+                Icon(Icons.Default.Settings, contentDescription = "Settings")
+            }
         }
-        Spacer(Modifier.height(26.dp))
-        Text(
-            "SLIDING",
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 5.sp,
-        )
-        Text(
-            "NUMBERS",
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 4.sp,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            "LEVEL ${progress.maxLevel}  ·  ${GameProgress.cityForLevel(progress.maxLevel).title.uppercase()}",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 2.sp,
-        )
-        Spacer(Modifier.height(30.dp))
+
+        val city = GameProgress.cityForLevel(progress.maxLevel)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF202944)),
+        ) {
+            Box(Modifier.fillMaxWidth().height(204.dp)) {
+                Image(
+                    painter = painterResource(cityImage(city)),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize(),
+                )
+                Box(
+                    Modifier.fillMaxSize().background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xDD111426), Color(0x99111426), Color(0x33111426)),
+                        ),
+                    ),
+                )
+                Column(
+                    Modifier.align(Alignment.CenterStart).padding(22.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        "YOUR CITY PUZZLE",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color(0xFFE7E9F2),
+                        letterSpacing = 2.sp,
+                    )
+                    Text(
+                        "Sliding\nNumbers",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Black,
+                        lineHeight = 36.sp,
+                    )
+                    Text(
+                        "${city.title}  ·  Level ${progress.maxLevel}",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = Color(0xFFFFD166),
+                    )
+                }
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(22.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xD9202944)),
+        ) {
+            Column(
+                Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text("CITY JOURNEY", style = MaterialTheme.typography.labelMedium, letterSpacing = 1.5.sp)
+                        Text(
+                            if (canResume) "Level ${progress.level} · puzzle in progress"
+                            else "Next up · Level ${progress.maxLevel}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        "${progress.maxLevel - 1} cleared",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color(0xFF92E6CD),
+                    )
+                }
+                LinearProgressIndicator(
+                    progress = { ((progress.maxLevel - 1) % 5) / 5f },
+                    modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(8.dp)),
+                    color = cityAccent(city),
+                    trackColor = Color.White.copy(alpha = 0.12f),
+                )
+            }
+        }
+
         Button(
             onClick = onPlay,
-            modifier = Modifier.fillMaxWidth().height(62.dp),
+            modifier = Modifier.fillMaxWidth().height(64.dp),
             shape = RoundedCornerShape(22.dp),
         ) {
             Text(
-                if (canResume) "CONTINUE LEVEL ${progress.level}" else "PLAY LEVEL ${progress.maxLevel}",
+                if (canResume) "CONTINUE PUZZLE" else "PLAY NEXT LEVEL",
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
             )
         }
-        Spacer(Modifier.height(12.dp))
+
         OutlinedButton(
             onClick = onLevels,
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(18.dp),
         ) {
-            Text("CITY LEVELS", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            Text("EXPLORE CITY LEVELS", fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
         }
-        Spacer(Modifier.height(12.dp))
+
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             OutlinedButton(
                 onClick = onLeaderboard,
-                modifier = Modifier.weight(1f).height(54.dp),
-                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RoundedCornerShape(17.dp),
             ) {
                 Icon(Icons.Default.Leaderboard, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text("RANKS")
+                Spacer(Modifier.width(8.dp))
+                Text("LEADERBOARD")
             }
             OutlinedButton(
                 onClick = onAchievements,
-                modifier = Modifier.weight(1f).height(54.dp),
-                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.weight(1f).height(52.dp),
+                shape = RoundedCornerShape(17.dp),
             ) {
                 Icon(Icons.Default.EmojiEvents, contentDescription = null)
-                Spacer(Modifier.width(6.dp))
-                Text("BADGES")
+                Spacer(Modifier.width(8.dp))
+                Text("AWARDS")
             }
         }
-        Spacer(Modifier.height(8.dp))
-        TextButton(onClick = onSignIn) {
-            Text(if (playGamesConfigured) "Connect Google Play Games" else "Set up Google Play Games")
-        }
-        TextButton(onClick = onSettings) {
-            Icon(Icons.Default.Settings, contentDescription = null)
-            Spacer(Modifier.width(6.dp))
-            Text("SETTINGS")
-        }
-        Spacer(Modifier.height(12.dp))
+
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color(0xAA202944)),
-            shape = RoundedCornerShape(18.dp),
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color(0xCC202944)),
+            shape = RoundedCornerShape(20.dp),
         ) {
             Row(
-                Modifier.fillMaxWidth().padding(16.dp),
+                Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 16.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                StatItem("BEST", "${progress.bestStars} ★")
+                StatItem("BEST STARS", "${progress.bestStars} ★")
                 StatItem("PUZZLES", progress.levelsCompleted.toString())
-                StatItem("SCORE", progress.totalScore.toString())
+                StatItem("CITY SCORE", progress.totalScore.toString())
             }
+        }
+        TextButton(
+            onClick = onSignIn,
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+        ) {
+            Text(if (playGamesConfigured) "Google Play Games" else "Connect Google Play Games")
         }
     }
 }
@@ -708,8 +792,9 @@ private fun GameScreen(
     val city = GameProgress.cityForLevel(session.level)
     val haptic = LocalHapticFeedback.current
     Column(
-        Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 8.dp),
+        Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
             Modifier.fillMaxWidth().height(58.dp),
@@ -718,34 +803,87 @@ private fun GameScreen(
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to home")
             }
-            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("LEVEL ${session.level}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Text(city.title.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(
+                Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(city.title.uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, letterSpacing = 1.5.sp)
+                Text("LEVEL ${session.level}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black)
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("MOVES", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(
-                    session.movesLeft.toString(),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = when {
-                        session.movesLeft <= 5 -> MaterialTheme.colorScheme.error
-                        session.movesLeft <= 10 -> MaterialTheme.colorScheme.secondary
-                        else -> Color.White
-                    },
-                )
-            }
-            Spacer(Modifier.width(14.dp))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.Star, contentDescription = "Stars", tint = MaterialTheme.colorScheme.secondary)
-                Text(starCount.toString(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+            Surface(
+                shape = RoundedCornerShape(18.dp),
+                color = Color(0xCC202944),
+            ) {
+                Row(
+                    Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
+                    Text(starCount.toString(), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
+                }
             }
         }
-        Spacer(Modifier.height(8.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xCC202944)),
+        ) {
+            Row(
+                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("MOVES LEFT", style = MaterialTheme.typography.labelMedium, letterSpacing = 1.sp)
+                        Text(
+                            "${session.movesLeft}",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = when {
+                                session.movesLeft <= 5 -> MaterialTheme.colorScheme.error
+                                session.movesLeft <= 10 -> MaterialTheme.colorScheme.secondary
+                                else -> Color.White
+                            },
+                        )
+                    }
+                    LinearProgressIndicator(
+                        progress = { (session.movesLeft.toFloat() / session.moveLimit).coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(8.dp)),
+                        color = if (session.movesLeft <= 10) MaterialTheme.colorScheme.error else cityAccent(city),
+                        trackColor = Color.White.copy(alpha = 0.12f),
+                    )
+                }
+                Text(
+                    "${session.size} × ${session.size}",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.08f))
+                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
         PuzzleBoard(
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(28.dp))
+                .background(Color(0xB8141A2A))
+                .border(1.dp, Color.White.copy(alpha = 0.10f), RoundedCornerShape(28.dp))
+                .padding(12.dp),
             size = session.size,
             board = session.board,
+            city = city,
             reducedMotion = reducedMotion,
             enabled = session.result == null,
             onTileClick = { index ->
@@ -754,15 +892,18 @@ private fun GameScreen(
                 }
             },
         )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "TAP OR DRAG A TILE ALONG THE OPEN LINE",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            letterSpacing = 1.sp,
-            modifier = Modifier.padding(vertical = 14.dp),
-        )
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = Color(0xAA202944),
+        ) {
+            Text(
+                "Tap a tile in the open row or column to slide it",
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 11.dp),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 
     when (val result = session.result) {
@@ -788,6 +929,7 @@ private fun PuzzleBoard(
     modifier: Modifier = Modifier,
     size: Int,
     board: List<Int>,
+    city: City,
     reducedMotion: Boolean,
     enabled: Boolean,
     onTileClick: (Int) -> Unit,
@@ -826,6 +968,7 @@ private fun PuzzleBoard(
                         PuzzleTile(
                             value = value,
                             correct = value == index + 1,
+                            city = city,
                             size = tileSize,
                             x = x,
                             y = y,
@@ -846,6 +989,7 @@ private fun PuzzleBoard(
 private fun PuzzleTile(
     value: Int,
     correct: Boolean,
+    city: City,
     size: Dp,
     x: Dp,
     y: Dp,
@@ -864,7 +1008,19 @@ private fun PuzzleTile(
     )
     val density = LocalDensity.current
     val dragThreshold = with(density) { (size * 0.28f).toPx() }
-    val background = if (correct) Color(0xFF19766F) else Color(0xFF263657)
+    val palette = listOf(
+        Color(0xFF5476F2),
+        Color(0xFFE8739A),
+        Color(0xFF20A98B),
+        Color(0xFFEF9A45),
+        Color(0xFF9372E8),
+    )
+    val paletteOffset = when (city) {
+        City.LONDON -> 0
+        City.PARIS -> 1
+        City.NEW_YORK -> 2
+    }
+    val background = if (correct) cityAccent(city) else palette[(value + paletteOffset) % palette.size]
     val textSize = (size.value * 0.36f).coerceIn(18f, 42f).sp
 
     Box(
@@ -872,14 +1028,14 @@ private fun PuzzleTile(
             .offset(x, y)
             .size(size)
             .scale(scale)
-            .shadow(12.dp, RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
+            .shadow(14.dp, RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(
                 Brush.verticalGradient(
                     listOf(background.copy(alpha = 0.98f), background.copy(alpha = 0.76f)),
                 ),
             )
-            .border(1.dp, Color.White.copy(alpha = if (correct) 0.36f else 0.16f), RoundedCornerShape(16.dp))
+            .border(1.dp, Color.White.copy(alpha = if (correct) 0.58f else 0.30f), RoundedCornerShape(20.dp))
             .semantics { contentDescription = "Number tile $value${if (correct) ", in place" else ""}" }
             .pointerInput(value, enabled, dragThreshold, dragXSign, dragYSign) {
                 var dragDistance = Offset.Zero

@@ -56,18 +56,18 @@ class PuzzleEngine(
         return chain + emptyIndex
     }
 
-    fun shuffle(steps: Int = size * size * 24) {
-        require(steps >= 0)
-        var previousEmpty = -1
-        repeat(steps) {
-            val empty = cells.indexOf(EMPTY)
-            val candidates = adjacentIndices(empty).toMutableList()
-            if (previousEmpty in candidates && candidates.size > 1) candidates.remove(previousEmpty)
-            val clicked = candidates[random.nextInt(candidates.size)]
-            previousEmpty = empty
-            move(clicked)
-        }
-        if (isSolved()) move(adjacentIndices(cells.lastIndex).first())
+    fun shuffle(minimumDisplacedTiles: Int = 2) {
+        require(minimumDisplacedTiles >= 0)
+        val startingBoard = cells.toList()
+        val requiredDisplacedTiles = minimumDisplacedTiles.coerceIn(1, size * size - 1)
+        do {
+            cells.clear()
+            cells.addAll(startingBoard.shuffled(random))
+        } while (
+            !isSolvable(cells, size) ||
+            cells == startingBoard ||
+            cells.indices.count { cells[it] != startingBoard[it] } < requiredDisplacedTiles
+        )
     }
 
     private fun adjacentIndices(index: Int): List<Int> {

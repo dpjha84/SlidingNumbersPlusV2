@@ -38,10 +38,24 @@ class PuzzleEngineTest {
     fun `shuffle remains solvable across supported board sizes`() {
         for (size in 3..5) {
             val engine = PuzzleEngine(size, random = Random(size))
-            engine.shuffle(600)
+            engine.shuffle()
 
             assertTrue(PuzzleEngine.isSolvable(engine.snapshot(), size))
             assertFalse(engine.isSolved())
+        }
+    }
+
+    @Test
+    fun `new shuffles create varied solvable boards`() {
+        for (size in 3..5) {
+            val boards = (1..20).map { seed ->
+                PuzzleEngine(size, random = Random(seed * size))
+                    .apply { shuffle() }
+                    .snapshot()
+            }
+
+            assertEquals("Shuffled boards should be unique for $size×$size", 20, boards.toSet().size)
+            assertTrue(boards.all { PuzzleEngine.isSolvable(it, size) })
         }
     }
 
