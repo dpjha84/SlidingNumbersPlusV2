@@ -13,7 +13,7 @@ Native Kotlin Android version of Sliding Numbers Plus, built with Jetpack Compos
 ./gradlew testDebugUnitTest assembleDebug
 ```
 
-The installable debug APK is written to `app/build/outputs/apk/debug/`. GitHub Actions runs JVM tests, a Compose UI smoke test on an emulator, and uploads the debug APK on pushes and pull requests. If all four Android signing secrets are set, CI also builds and uploads a signed release AAB.
+The installable debug APK is written to `app/build/outputs/apk/debug/`. GitHub Actions runs JVM tests, compiles the Compose UI test APK, and uploads the debug APK on pushes to `master` and pull requests. If all four Android signing secrets are set, CI also builds and uploads a signed release AAB.
 
 ## Gameplay
 
